@@ -1,0 +1,110 @@
+---
+title: " Global Terrorism Database - Notebook"
+author: "Simon Garnier"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    css: custom.css
+    fig_caption: true
+    fig_width: 8
+    number_sections: true
+    theme: cosmo
+    toc: true
+    csl: plos.csl
+    bibliography: library.bib
+---
+
+--- 
+
+# Environment setup
+
+```{r, 'setup', message=FALSE}
+library(data.table)
+library(dplyr)
+library(ggmap)
+library(graphZoo)
+library(RColorBrewer)
+
+cbf <- brewer.pal(8, "Dark2") # A colorblind friendly palette
+```
+
+[Back to top]("#")
+
+---
+
+# Data loading
+
+```{r, 'data', cache=TRUE}
+select_cols <- c(1:4, 8:12, 14:15, 27, 29:30, 35:36, 41:42, 59, 81:82, 98, 101)
+col_class <- rep("NULL", 134)
+col_class[select_cols] <- NA
+
+gtd <- as.data.table(
+  read.csv("../data/globalterrorismdb_0814dist.csv", 
+           colClasses = col_class)) %>%
+  mutate(idate = ISOdate(iyear, imonth, iday))
+```
+
+[Back to top]("#")
+
+---
+
+# Attacks by country (TOP 50)
+
+```{r, 'figure_1', cache=TRUE, dpi=300, fig.height=9, fig.width=6, out.width='40%'}
+attacks <- group_by(gtd, country_txt) %>%
+  summarize(number = length(eventid)) %>%
+  ungroup() %>%
+  mutate(rank = rank(-number))
+
+g <- ggplot(filter(attacks, rank < 51), 
+            aes(x = reorder(country_txt, number), y = number)) +
+  geom_bar(stat = "identity", color = "white", fill = cbf[2]) + 
+  coord_flip() + 
+  ggtitle(bquote(atop("Terrorist attacks by country",
+                      atop("since 1970")))) + 
+  ylab("Number of events") + 
+  theme_graphzoo(base_size = 13, family = "Avenir Next") +
+  theme(axis.title.y = element_blank())
+
+g <- addBanner(g, font.size = 3, heights = c(1, 0.05*6/9),
+          l.txt = "GRAPHZOO.TUMBLR.COM", 
+          r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
+
+g
+```
+<p class="caption">**Figure 1:** Number of terrorist attacks by country according to the Global Terrorism Database.</p>
+
+[Back to top]("#")
+
+---
+
+# Casualties by country (TOP 50)
+
+```{r, 'figure_2', cache=TRUE, dpi=300, fig.height=9, fig.width=6, out.width='40%'}
+casualties <- group_by(gtd, country_txt) %>%
+  summarize(number = sum(nkill, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(rank = rank(-number))
+
+g <- ggplot(filter(casualties, rank < 51), 
+            aes(x = reorder(country_txt, number), y = number)) +
+  geom_bar(stat = "identity", color = "white", fill = cbf[2]) + 
+  coord_flip() + 
+  ggtitle(bquote(atop("Terrorist attacks by country",
+                      atop("since 1970")))) + 
+  ylab("Number of casualties") + 
+  theme_graphzoo(base_size = 13, family = "Avenir Next") +
+  theme(axis.title.y = element_blank())
+
+g <- addBanner(g, font.size = 3, heights = c(1, 0.05*6/9),
+          l.txt = "GRAPHZOO.TUMBLR.COM", 
+          r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
+
+g
+```
+<p class="caption">**Figure 2:** Total number of casualties resulting from terrorist attacks by country according to the Global Terrorism Database.</p>
+
+[Back to top]("#")
+
+---
