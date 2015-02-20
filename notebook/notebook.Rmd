@@ -24,6 +24,8 @@ library(dplyr)
 library(ggmap)
 library(graphZoo)
 library(RColorBrewer)
+library(animation)
+library(scales)
 
 cbf <- brewer.pal(8, "Dark2") # A colorblind friendly palette
 ```
@@ -51,7 +53,7 @@ gtd <- as.data.table(
 
 # Attacks by country (TOP 50)
 
-```{r, 'figure_1', cache=TRUE, dpi=300, fig.height=9, fig.width=6, out.width='40%'}
+```{r, 'figure_1', cache=TRUE, dpi=300, fig.height=9, fig.width=6}
 attacks <- group_by(gtd, country_txt) %>%
   summarize(number = length(eventid)) %>%
   ungroup() %>%
@@ -81,7 +83,7 @@ g
 
 # Casualties by country (TOP 50)
 
-```{r, 'figure_2', cache=TRUE, dpi=300, fig.height=9, fig.width=6, out.width='40%'}
+```{r, 'figure_2', cache=TRUE, dpi=300, fig.height=9, fig.width=6}
 casualties <- group_by(gtd, country_txt) %>%
   summarize(number = sum(nkill, na.rm = TRUE)) %>%
   ungroup() %>%
@@ -104,6 +106,84 @@ g <- addBanner(g, font.size = 3, heights = c(1, 0.05*6/9),
 g
 ```
 <p class="caption">**Figure 2:** Total number of casualties resulting from terrorist attacks by country according to the Global Terrorism Database.</p>
+
+[Back to top]("#")
+
+---
+
+# Locations of terrorist attacks
+
+```{r, 'figure_3', warning=FALSE, results='asis'}
+gtd_2000 <- filter(gtd, iyear > 1999) %>%
+  mutate(nkill = replace(nkill, is.na(nkill), 0),
+         nwound = replace(nwound, is.na(nwound), 0)) %>%
+  mutate(nvic = nkill + nwound)
+
+vic <- group_by(gtd_2000, idate) %>%
+  summarize(count = sum(nvic)) %>%
+  arrange(idate) %>%
+  mutate(cum_count = cumsum(count))
+
+start <- seq(ISOdate(2000, 1, 1), max(gtd_2000$idate, na.rm = TRUE), by = "1 week")
+end <- seq(ISOdate(2000, 1, 8), max(gtd_2000$idate, na.rm = TRUE), by = "1 week")
+
+base <- ggplot() + 
+  borders("world", colour = "gray50") + 
+  coord_fixed() + 
+  theme_minimal(base_size = 18) + 
+  theme(legend.position = "top",
+        axis.line = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) 
+
+ani.options(ani.height = 1024*6/10, ani.width = 1024, 
+            interval = 1/12, loop = FALSE)
+
+if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
+  saveVideo({
+    for (i in 1:length(end)) {
+      tmp1 <- filter(gtd_2000, idate >= start[i] & idate < end[i])
+      tmp2 <- filter(gtd_2000, idate < end[i])
+      
+      g <- base + 
+        geom_point(data = tmp1, aes(x = longitude, y = latitude, size = nvic), color = "dodgerblue4") +
+        geom_point(data = tmp2, aes(x = longitude, y = latitude, size = nvic), color = "tomato3", alpha = 0.1) +
+        annotate("text", x = -157, y = 12, label = format(start[i], "%Y-%m-%d")) +     
+        scale_size_continuous(name = "Casualties",
+                              limits = c(0, max(gtd_2000$nvic, na.rm = TRUE)),
+                              range = c(2, 12), 
+                              breaks = seq(0, 1250, 250),
+                              labels = paste0("≥ ", seq(0, 1250, 250), "   "))
+      
+      g <- addBanner(g, font.size = 6, heights = c(1, 0.04*10/6),
+                     l.txt = "GRAPHZOO.TUMBLR.COM", 
+                     r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
+      
+      ins <- ggplot(filter(vic, idate < end[i]), 
+                    aes(x = idate, y = cum_count)) +
+        geom_line(size = 2, color = "dodgerblue4") + 
+        geom_line(data = vic, size = 2, color = "tomato3", alpha = 0.1) +
+        xlim(start[1], end[length(end)]) + 
+        theme_minimal(base_size = 12) +
+        xlab(NULL) + 
+        scale_y_continuous(name = "Total number of victims", labels = comma,
+                           limits = c(0, max(vic$cum_count)))
+      
+      grid.newpage()
+      print(g, vp = viewport(width = 1, height = 1, x = 0.5, y = 0.5)) 
+      print(ins, vp = viewport(width = 0.3, height = 0.3, x = 0.01, y = 0.4, just = "left"))      
+      }
+    }, 
+    video.name = "notebook_files/figure-html/figure_3.mp4", 
+    other.opts = "-c:v libx264 -preset slow -crf 18 -c:a copy -pix_fmt yuv420p")
+}
+
+cat("<video controls><source src='notebook_files/figure-html/figure_3.mp4' type='video/mp4'>Your browser does not support the video tag.</video>")
+```
+<p class="caption">**Figure 3: Weekly locations of all terrorist attacks since January 2000.** </p>
 
 [Back to top]("#")
 
