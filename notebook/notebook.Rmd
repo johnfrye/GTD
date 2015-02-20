@@ -113,7 +113,7 @@ g
 
 # Locations of terrorist attacks
 
-```{r, 'figure_3', warning=FALSE, results='asis'}
+```{r, 'figure_3', warning=FALSE, message=FALSE, results='asis'}
 gtd_2000 <- filter(gtd, iyear > 1999) %>%
   mutate(nkill = replace(nkill, is.na(nkill), 0),
          nwound = replace(nwound, is.na(nwound), 0)) %>%
@@ -152,7 +152,7 @@ if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
         geom_point(data = tmp1, aes(x = longitude, y = latitude, size = nvic), color = "dodgerblue4") +
         geom_point(data = tmp2, aes(x = longitude, y = latitude, size = nvic), color = "tomato3", alpha = 0.1) +
         annotate("text", x = -157, y = 12, label = format(start[i], "%Y-%m-%d")) +     
-        scale_size_continuous(name = "Casualties",
+        scale_size_continuous(name = "Victims (deaths and injuries)",
                               limits = c(0, max(gtd_2000$nvic, na.rm = TRUE)),
                               range = c(2, 12), 
                               breaks = seq(0, 1250, 250),
@@ -167,7 +167,7 @@ if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
         geom_line(size = 2, color = "dodgerblue4") + 
         geom_line(data = vic, size = 2, color = "tomato3", alpha = 0.1) +
         xlim(start[1], end[length(end)]) + 
-        theme_minimal(base_size = 12) +
+        theme_minimal(base_size = 14) +
         xlab(NULL) + 
         scale_y_continuous(name = "Total number of victims", labels = comma,
                            limits = c(0, max(vic$cum_count)))
