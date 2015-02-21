@@ -128,10 +128,11 @@ start <- seq(ISOdate(2000, 1, 1), max(gtd_2000$idate, na.rm = TRUE), by = "1 wee
 end <- seq(ISOdate(2000, 1, 8), max(gtd_2000$idate, na.rm = TRUE), by = "1 week")
 
 base <- ggplot() + 
-  borders("world", colour = "gray50") + 
+  borders("world", colour = "gray50", size = 1) + 
   coord_fixed() + 
-  theme_minimal(base_size = 18) + 
+  theme_minimal(base_size = 2.5*18) + 
   theme(legend.position = "top",
+        legend.title.align = 0.5,
         axis.line = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
@@ -139,7 +140,7 @@ base <- ggplot() +
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank()) 
 
-ani.options(ani.height = 1024*6/10, ani.width = 1024, 
+ani.options(ani.height = 1440, ani.width = 2560, 
             interval = 1/12, loop = FALSE)
 
 if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
@@ -151,34 +152,34 @@ if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
       g <- base + 
         geom_point(data = tmp1, aes(x = longitude, y = latitude, size = nvic), color = "dodgerblue4") +
         geom_point(data = tmp2, aes(x = longitude, y = latitude, size = nvic), color = "tomato3", alpha = 0.1) +
-        annotate("text", x = -157, y = 12, label = format(start[i], "%Y-%m-%d")) +     
-        scale_size_continuous(name = "Victims (deaths and injuries)",
+        annotate("text", x = -147, y = 0, label = format(start[i], "%Y-%m-%d"), size = 2.5*4) +     
+        scale_size_continuous(name = "Victims\n(deaths and injuries)",
                               limits = c(0, max(gtd_2000$nvic, na.rm = TRUE)),
-                              range = c(2, 12), 
+                              range = 2.5*c(2, 12), 
                               breaks = seq(0, 1250, 250),
                               labels = paste0("≥ ", seq(0, 1250, 250), "   "))
       
-      g <- addBanner(g, font.size = 6, heights = c(1, 0.04*10/6),
+      g <- addBanner(g, font.size = 2.5*5, heights = c(1, 0.03*16/9),
                      l.txt = "GRAPHZOO.TUMBLR.COM", 
                      r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
       
       ins <- ggplot(filter(vic, idate < end[i]), 
                     aes(x = idate, y = cum_count)) +
-        geom_line(size = 2, color = "dodgerblue4") + 
-        geom_line(data = vic, size = 2, color = "tomato3", alpha = 0.1) +
+        geom_line(size = 2.5*2, color = "dodgerblue4") + 
+        geom_line(data = vic, size = 2.5*2, color = "tomato3", alpha = 0.1) +
         xlim(start[1], end[length(end)]) + 
-        theme_minimal(base_size = 14) +
+        theme_minimal(base_size = 2.5*14) +
         xlab(NULL) + 
-        scale_y_continuous(name = "Total number of victims", labels = comma,
+        scale_y_continuous(name = "Cumulative number\nof victims\n", labels = comma,
                            limits = c(0, max(vic$cum_count)))
       
       grid.newpage()
       print(g, vp = viewport(width = 1, height = 1, x = 0.5, y = 0.5)) 
-      print(ins, vp = viewport(width = 0.3, height = 0.3, x = 0.01, y = 0.4, just = "left"))      
+      print(ins, vp = viewport(width = 0.29, height = 0.29, x = 0.01, y = 0.35, just = "left"))      
       }
     }, 
     video.name = "notebook_files/figure-html/figure_3.mp4", 
-    other.opts = "-c:v libx264 -preset slow -crf 18 -c:a copy -pix_fmt yuv420p")
+    other.opts = "-vcodec libx264 -vb 20M -pix_fmt yuv420p")
 }
 
 cat("<video controls><source src='notebook_files/figure-html/figure_3.mp4' type='video/mp4'>Your browser does not support the video tag.</video>")
