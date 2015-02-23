@@ -111,7 +111,7 @@ g
 
 ---
 
-# Locations of terrorist attacks
+# Worldwide locations of terrorist attacks since January 2000
 
 ```{r, 'figure_3', warning=FALSE, message=FALSE, results='asis'}
 gtd_2000 <- filter(gtd, iyear > 1999) %>%
@@ -185,6 +185,104 @@ if (!file.exists("notebook_files/figure-html/figure_3.mp4")) {
 cat("<video controls><source src='notebook_files/figure-html/figure_3.mp4' type='video/mp4'>Your browser does not support the video tag.</video>")
 ```
 <p class="caption">**Figure 3: Weekly locations of all terrorist attacks since January 2000.** </p>
+
+[Back to top]("#")
+
+---
+
+# Locations of terrorist attacks in the US since January 1970
+
+```{r, 'figure_4', cache=TRUE, dpi=300, fig.height=7, fig.width=9, warning=FALSE, message=FALSE, results='hide'}
+gtd_usa <- filter(gtd, country == 217) %>%
+  mutate(nkill = replace(nkill, is.na(nkill), 0),
+         nwound = replace(nwound, is.na(nwound), 0)) %>%
+  mutate(nvic = nkill + nwound)
+
+g <- ggplot() + 
+  borders("state", colour = "gray50") + 
+  geom_point(data = gtd_usa, 
+             aes(x = longitude, y = latitude, size = nvic),
+             color = cbf[2], alpha = 0.1) +
+  coord_map("gilbert") +  
+  xlim(-125, -66) + ylim(25, 50) +
+  ggtitle("Locations of terrorist attacks in the US since 1970\n") +
+  theme_graphzoo(base_size = 13, family = "Avenir Next") + 
+  theme(legend.position = "bottom",
+        legend.title.align = 0.5,
+        axis.line = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.margin = unit(c(1, 0, 0, 0), "lines")) +
+  scale_size_continuous(name = "Number of victims\n(deaths and injuries)",
+                        limits = c(0, max(gtd_usa$nvic, na.rm = TRUE)),
+                        range = c(4, 14), 
+                        breaks = seq(0, 1250, 250),
+                        labels = paste0("≥ ", seq(0, 1250, 250), "   "))
+
+g <- addBanner(g, font.size = 4, heights = c(1, 0.05* 9/7),
+               l.txt = "GRAPHZOO.TUMBLR.COM", 
+               r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
+
+png("notebook_files/figure-html/figure_4-1.png", bg = '#F0F0F0', width = 9, height = 7, unit = "in", res = 300)
+g
+dev.off()
+```
+
+![](notebook_files/figure-html/figure_4-1.png)
+
+<p class="caption">**Figure 4:Locations of all terrorist attacks in the US since January 1970.** </p>
+
+[Back to top]("#")
+
+---
+
+# Locations of terrorist attacks in France since January 1970
+
+```{r, 'figure_5', cache=TRUE, dpi=300, fig.height=7, fig.width=7, warning=FALSE, message=FALSE, results='hide'}
+gtd_france <- filter(gtd, country == 69 | country == 238) %>%
+  mutate(nkill = replace(nkill, is.na(nkill), 0),
+         nwound = replace(nwound, is.na(nwound), 0)) %>%
+  mutate(nvic = nkill + nwound)
+
+g <- ggplot() + 
+  borders("france", colour = "gray50") + 
+  geom_point(data = gtd_france, 
+             aes(x = longitude, y = latitude, size = nvic),
+             color = cbf[2], alpha = 0.1) +
+  coord_map("gilbert") +  
+  #xlim(-125, -66) + ylim(25, 50) +
+  ggtitle("Locations of terrorist attacks in France since 1970\n") +
+  theme_graphzoo(base_size = 13, family = "Avenir Next") + 
+  theme(legend.position = "bottom",
+        legend.title.align = 0.5,
+        axis.line = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        plot.margin = unit(c(1, 0, 0, 0), "lines")) +
+  scale_size_continuous(name = "Number of victims\n(deaths and injuries)",
+                        limits = c(0, max(gtd_france$nvic, na.rm = TRUE)),
+                        range = c(4, 14), 
+                        breaks = seq(0, 75, 25),
+                        labels = paste0("≥ ", seq(0, 75, 25), "   ")) 
+
+g <- addBanner(g, font.size = 4, heights = c(1, 0.05* 9/7),
+               l.txt = "GRAPHZOO.TUMBLR.COM", 
+               r.txt = "SOURCE: GLOBAL TERRORISM DATABASE")
+
+png("notebook_files/figure-html/figure_5-1.png", bg = '#F0F0F0', width = 7, height = 7, unit = "in", res = 300)
+g
+dev.off()
+```
+
+![](notebook_files/figure-html/figure_5-1.png)
+
+<p class="caption">**Figure 5:Locations of all terrorist attacks in France since January 1970.** </p>
 
 [Back to top]("#")
 
